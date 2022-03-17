@@ -10,10 +10,11 @@ const extensions = ({ context, result }) => {
   }
 };
 
-const qMantis = (schema) => {
+const qMantis = (schema, rootValue) => {
   return (request) => {
       return {
         schema,
+    //  rootValue: rootValue,
         context: { startTime: Date.now() },
         graphiql: true,
         extensions,
