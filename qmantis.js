@@ -1,4 +1,5 @@
-const { countErrors, requestLatency } = require("./observability/monitoring");
+import "./observability/tracer.js";
+import { countRequests, countErrors, requestLatency } from "./observability/metrics.js";
 
 const extensions = ({ context, result }) => {
   let runTime = Date.now() - context.startTime;
@@ -12,13 +13,13 @@ const extensions = ({ context, result }) => {
 
 const qMantis = (schema) => {
   return (request) => {
-      return {
-        schema,
-        context: { startTime: Date.now() },
-        graphiql: true,
-        extensions,
-      };
-    }
-}
+    return {
+      schema,
+      context: { startTime: Date.now() },
+      graphiql: true,
+      extensions,
+    };
+  };
+};
 
-module.exports = qMantis;
+export { countRequests, qMantis };

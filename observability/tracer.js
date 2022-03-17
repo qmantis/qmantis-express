@@ -1,14 +1,15 @@
-const { HttpInstrumentation } = require ('@opentelemetry/instrumentation-http');
-const { ExpressInstrumentation } = require ('@opentelemetry/instrumentation-express');
-const { registerInstrumentations } = require('@opentelemetry/instrumentation');
-const { NodeTracerProvider } = require("@opentelemetry/node");
-const { BatchSpanProcessor } = require ("@opentelemetry/tracing");
-const { Resource } = require('@opentelemetry/resources');
-const { JaegerExporter } = require('@opentelemetry/exporter-jaeger')
-const { MongoDBInstrumentation } = require('@opentelemetry/instrumentation-mongodb');
-const { PgInstrumentation } = require('@opentelemetry/instrumentation-pg');
-const { GraphQLInstrumentation } = require('@opentelemetry/instrumentation-graphql');
-const config = require("../config/config.json")
+import { HttpInstrumentation } from "@opentelemetry/instrumentation-http";
+import { ExpressInstrumentation } from "@opentelemetry/instrumentation-express";
+import { registerInstrumentations } from "@opentelemetry/instrumentation";
+import { NodeTracerProvider } from "@opentelemetry/sdk-trace-node";
+import { BatchSpanProcessor } from "@opentelemetry/sdk-trace-base";
+import { Resource } from "@opentelemetry/resources";
+import { JaegerExporter } from "@opentelemetry/exporter-jaeger";
+import { MongoDBInstrumentation } from "@opentelemetry/instrumentation-mongodb";
+import { PgInstrumentation } from "@opentelemetry/instrumentation-pg";
+import { GraphQLInstrumentation } from "@opentelemetry/instrumentation-graphql";
+import { SemanticResourceAttributes } from "@opentelemetry/semantic-conventions";
+// import config from "../config/config.json";
 
 registerInstrumentations({
   instrumentations: [
@@ -17,7 +18,7 @@ registerInstrumentations({
     new ExpressInstrumentation(),
     new MongoDBInstrumentation(),
     new PgInstrumentation(),
-  ]
+  ],
 });
 
 const provider = new NodeTracerProvider({
@@ -28,11 +29,9 @@ const provider = new NodeTracerProvider({
 
 const jaegerExporter = new JaegerExporter({
   tags: [],
-  endpoint: `http://localhost:14268/api/traces`,
+  endpoint: "http://localhost:14268/api/traces",
 });
 
-provider.addSpanProcessor(
-  new BatchSpanProcessor(jaegerExporter)
-);
+provider.addSpanProcessor(new BatchSpanProcessor(jaegerExporter));
 
-provider.register();
+export default provider.register();
