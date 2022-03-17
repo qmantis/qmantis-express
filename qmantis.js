@@ -1,4 +1,4 @@
-import { countErrors, requestLatency } from "./observability/monitoring";
+import { countErrors, requestLatency } from "./observability/monitoring.js";
 
 const extensions = ({ context, result }) => {
   let runTime = Date.now() - context.startTime;

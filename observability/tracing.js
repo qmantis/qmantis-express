@@ -9,7 +9,6 @@ import { MongoDBInstrumentation } from '@opentelemetry/instrumentation-mongodb';
 import { PgInstrumentation } from '@opentelemetry/instrumentation-pg';
 import { GraphQLInstrumentation } from '@opentelemetry/instrumentation-graphql';
 import { SemanticResourceAttributes }  from "@opentelemetry/semantic-conventions";
-import config from "../config/config.json";
 
 registerInstrumentations({
   instrumentations: [
@@ -23,7 +22,7 @@ registerInstrumentations({
 
 const provider = new NodeTracerProvider({
   resource: new Resource({
-    [SemanticResourceAttributes.SERVICE_NAME]: `${config.service}`,
+    [SemanticResourceAttributes.SERVICE_NAME]: "graphql-service",
   }),
 });
 
@@ -36,4 +35,5 @@ provider.addSpanProcessor(
   new BatchSpanProcessor(jaegerExporter)
 );
 
-provider.register();
+export default provider.register();
+
