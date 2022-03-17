@@ -8,6 +8,7 @@ import { JaegerExporter } from '@opentelemetry/exporter-jaeger';
 import { MongoDBInstrumentation } from '@opentelemetry/instrumentation-mongodb';
 import { PgInstrumentation } from '@opentelemetry/instrumentation-pg';
 import { GraphQLInstrumentation } from '@opentelemetry/instrumentation-graphql';
+import { SemanticResourceAttributes }  from "@opentelemetry/semantic-conventions";
 import config from "../config/config.json";
 
 registerInstrumentations({
