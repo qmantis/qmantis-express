@@ -1,4 +1,4 @@
-const { countErrors, requestLatency } = require("./observability/monitoring");
+import { countErrors, requestLatency } from "./observability/monitoring";
 
 const extensions = ({ context, result }) => {
   let runTime = Date.now() - context.startTime;
@@ -14,7 +14,7 @@ const qMantis = (schema, rootValue) => {
   return (request) => {
       return {
         schema,
-    //  rootValue: rootValue,
+    //  rootValue,
         context: { startTime: Date.now() },
         graphiql: true,
         extensions,
@@ -22,4 +22,4 @@ const qMantis = (schema, rootValue) => {
     }
 }
 
-module.exports = qMantis;
+export default qMantis;

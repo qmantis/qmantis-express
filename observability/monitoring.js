@@ -1,5 +1,5 @@
-const { MeterProvider } = require('@opentelemetry/sdk-metrics-base');
-const { PrometheusExporter } = require('@opentelemetry/exporter-prometheus');
+import { MeterProvider } from '@opentelemetry/sdk-metrics-base';
+import { PrometheusExporter } from '@opentelemetry/exporter-prometheus';
 
 const options = {port: 9464, startServer: true};
 const exporter = new PrometheusExporter(options);
@@ -31,4 +31,4 @@ const countErrors = () => {
   errorsCounter.add(1);
 }
 
-module.exports = { countRequests, countErrors, requestLatency }
+export { countRequests, countErrors, requestLatency }
