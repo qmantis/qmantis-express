@@ -24,8 +24,8 @@
     "@opentelemetry/instrumentation-mongodb": "^0.29.0",
     "@opentelemetry/instrumentation-mysql": "^0.28.0",
     "@opentelemetry/instrumentation-pg": "^0.28.0",
-    "@opentelemetry/node": "^0.22.0",
     "@opentelemetry/sdk-metrics-base": "^0.27.0",
+    "@opentelemetry/sdk-trace-node": "^1.0.1",
     "@opentelemetry/semantic-conventions": "^1.0.1"
   }
 }
