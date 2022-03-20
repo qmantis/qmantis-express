@@ -1,18 +1,24 @@
 import "./observability/tracing.js";
 import { countRequests, countErrors, requestLatency } from "./observability/monitoring.js";
+import config from "./utils.js";
 
-const extensions = ({ context, result }) => {
+const extensions = ({ context, result, operationName }) => {
   let runTime = Date.now() - context.startTime;
   requestLatency.record(runTime);
 
+  config.operationName = operationName || "operation";
+
   if (result.errors) {
     console.log("error", result.errors);
+    config.error = true;
     countErrors();
+  } else {
+    config.error = false;
   }
 };
 
 const qMantis = (schema, rootValue) => {
-  return (request) => {
+  return () => {
     return {
       schema,
       //  rootValue,
