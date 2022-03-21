@@ -16,8 +16,9 @@ registerInstrumentations({
     new GraphQLInstrumentation(),
     new HttpInstrumentation({
       applyCustomAttributesOnSpan: (span) => {
-        if (config.error) {
-          span.setAttribute("error", "true");
+        if ((config.error) || (span.status.code !== 1)) {
+          span.setAttribute("error", true)
+          span.setAttribute("gqlerror", "true")
         }
         if (config.operationName) {
           span.setAttribute("operationName", config.operationName);
