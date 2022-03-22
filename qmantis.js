@@ -1,6 +1,8 @@
 import "./observability/tracing.js";
 import { countRequests, requestLatency } from "./observability/monitoring.js";
 import config from "./utils.js";
+import { qMantisServer } from "./server/server.js"
+
 
 const extensions = ({ context, result, operationName }) => {
   let runTime = Date.now() - context.startTime;
@@ -28,4 +30,4 @@ const qMantis = (schema, rootValue) => {
   };
 };
 
-export { qMantis, countRequests };
+export { qMantisServer, countRequests };

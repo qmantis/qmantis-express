@@ -1,5 +1,6 @@
 import { MeterProvider } from "@opentelemetry/sdk-metrics-base";
 import { PrometheusExporter } from "@opentelemetry/exporter-prometheus";
+import config from "../utils.js";
 
 const options = { port: 9464, startServer: true };
 const exporter = new PrometheusExporter(options);
@@ -7,7 +8,7 @@ const exporter = new PrometheusExporter(options);
 const meter = new MeterProvider({
   exporter,
   interval: 1000,
-}).getMeter("example-prometheus");
+}).getMeter("metrics-graphql");
 
 const requestsCounter = meter.createCounter("total_requests", {
   description: "Counting all requests made to /graphql",
@@ -24,11 +25,25 @@ const requestLatency = meter.createHistogram("request_latency", {
 
 const countRequests = (req, res, next) => {
   requestsCounter.add(1);
-  next();
 };
 
 const countErrors = () => {
   errorsCounter.add(1);
 };
 
-export { countRequests, countErrors, requestLatency };
+const collectMetrics = (startLatency, response) => {
+  countRequests();
+  console.log("counting requests")
+
+  if (response.errors) {
+    console.log("error added");
+    config.error = true;
+    countErrors();
+  } else {
+    config.error = false;
+  }
+  console.log("latency", Date.now() - startLatency)
+  requestLatency.record(Date.now() - startLatency)
+}
+
+export { countRequests, countErrors, requestLatency, collectMetrics };
