@@ -1,6 +1,5 @@
-
 import "./observability/tracing.js";
-import { countRequests, countErrors, requestLatency } from "./observability/monitoring.js";
+import { countRequests, requestLatency } from "./observability/monitoring.js";
 import config from "./utils.js";
 
 const extensions = ({ context, result, operationName }) => {
@@ -12,7 +11,6 @@ const extensions = ({ context, result, operationName }) => {
   if (result.errors) {
     console.log("error", result.errors);
     config.error = true;
-    countErrors();
   } else {
     config.error = false;
   }
