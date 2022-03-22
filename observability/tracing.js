@@ -10,15 +10,17 @@ import { PgInstrumentation } from "@opentelemetry/instrumentation-pg";
 import { GraphQLInstrumentation } from "@opentelemetry/instrumentation-graphql";
 import { SemanticResourceAttributes } from "@opentelemetry/semantic-conventions";
 import config from "../utils.js";
+import { countErrors } from "../observability/monitoring.js";
 
 registerInstrumentations({
   instrumentations: [
     new GraphQLInstrumentation(),
     new HttpInstrumentation({
       applyCustomAttributesOnSpan: (span) => {
-        if ((config.error) || (span.status.code !== 1)) {
-          span.setAttribute("error", true)
-          span.setAttribute("gqlerror", "true")
+        if (config.error || span.status.code !== 1) {
+          span.setAttribute("error", true);
+          span.setAttribute("gqlerror", "true");
+          countErrors();
         }
         if (config.operationName) {
           span.setAttribute("operationName", config.operationName);
