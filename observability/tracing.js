@@ -25,6 +25,7 @@ registerInstrumentations({
         }
         config.error = false;
         config.operationName = null;
+        config.operationType = null;
       },
     }),
     new ExpressInstrumentation(),
