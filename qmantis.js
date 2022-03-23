@@ -61,6 +61,7 @@ export function qMantisServer(options) {
 
       // Get GraphQL params from the request and POST body data.
       const { query, variables, operationName } = params;
+      config.operationName = operationName;
       showGraphiQL = canDisplayGraphiQL(request, params) && graphiql !== false;
       if (typeof graphiql !== 'boolean') {
         graphiqlOptions = graphiql;
@@ -240,8 +241,6 @@ export async function getGraphQLParams(request) {
   if (typeof operationName !== 'string') {
     operationName = null;
   }
-
-  config.operationName = operationName;
 
   const raw = urlData.get('raw') != null || bodyData.raw !== undefined;
 
