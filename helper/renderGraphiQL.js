@@ -6,25 +6,6 @@ const { FormattedExecutionResult } = pkg;
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 
-// require("@babel/core").transform("code", {
-//   presets: ["@babel/preset-env"],
-// }); // new codee
-
-// export const gqliData = {
-//   query: "",
-//   variables: "" | null,
-//   operationName: "" | null,
-//   result: FormattedExecutionResult,
-// };
-
-// export const gqliOptions = {
-//   defaultQuery: "",
-//   headerEditorEnabled: true,
-//   shouldPersistHeaders: true,
-//   subscriptionEndpoint: "",
-//   websocketClient: "",
-// };
-
 // Ensures string values are safe to be used within a <script> tag.
 export function safeSerialize(data) {
   return data != null
@@ -57,6 +38,42 @@ export function renderGraphiQL(gqliData, gqliOptions) {
   const defaultQuery = gqliOptions?.defaultQuery;
   const headerEditorEnabled = gqliOptions?.headerEditorEnabled;
   const shouldPersistHeaders = gqliOptions?.shouldPersistHeaders;
+  const subscriptionEndpoint = gqliOptions?.subscriptionEndpoint;
+  const websocketClient = gqliOptions?.websocketClient ?? "v0";
+
+  let subscriptionScripts = "";
+  if (subscriptionEndpoint != null) {
+    if (websocketClient === "v1") {
+      subscriptionScripts = `
+      <script>
+        ${loadFileStaticallyFromNPM("graphql-ws/umd/graphql-ws.js")}
+      </script>
+      <script>
+      ${loadFileStaticallyFromNPM(
+        "subscriptions-transport-ws/browser/client.js"
+      )}
+      </script>
+      `;
+    } else {
+      subscriptionScripts = `
+      <script>
+        ${loadFileStaticallyFromNPM(
+          "subscriptions-transport-ws/browser/client.js"
+        )}
+      </script>
+      <script>
+        ${loadFileStaticallyFromNPM(
+          "subscriptions-transport-ws/browser/client.js"
+        )}
+      </script>
+      <script>
+        ${loadFileStaticallyFromNPM(
+          "graphiql-subscriptions-fetcher/browser/client.js"
+        )}
+      </script>
+      `;
+    }
+  }
 
   return `<!--
 The request to this GraphQL server provided the header "Accept: text/html"
@@ -70,18 +87,23 @@ add "&raw" to the end of the URL within a browser.
 <head>
   <meta charset="utf-8" />
   <title>GraphiQL</title>
+  <link href="https://unpkg.com/graphiql/graphiql.min.css" rel="stylesheet" />
   <meta name="robots" content="noindex" />
   <meta name="referrer" content="origin" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-    }
+  body {
+    height: 100%;
+    margin: 0;
+    width: 100%;
+    overflow: hidden;
+  }
     #graphiql {
       height: 100vh;
     }
   </style>
+ 
+
   <style>
     /* graphiql/graphiql.css
     ${loadFileStaticallyFromNPM("graphiql/graphiql.css")}
@@ -102,11 +124,11 @@ add "&raw" to the end of the URL within a browser.
     // react-dom/umd/react-dom.production.min.js
     ${loadFileStaticallyFromNPM("react-dom/umd/react-dom.production.min.js")}
   </script>
-  <script>
+  <script type="application/javascript">
     // graphiql/graphiql.min.js
     ${loadFileStaticallyFromNPM("graphiql/graphiql.min.js")}
   </script>
-
+  ${subscriptionScripts}
 </head>
 <body>
   <div id="graphiql">Loading...</div>
@@ -160,7 +182,24 @@ add "&raw" to the end of the URL within a browser.
       });
     }
     function makeFetcher() {
+      if('${typeof subscriptionEndpoint}' == 'string') {
+        let client = null;
+        let url = window.location.href;
+        if('${typeof websocketClient}' == 'string' && '${websocketClient}' === 'v1') {
+          client = window.graphqlWs.createClient({url: ${safeSerialize(
+            subscriptionEndpoint
+          )} });
+          return window.GraphiQL.createFetcher({url, wsClient: client});
+        } else {
+          let clientClass = window.SubscriptionsTransportWs.SubscriptionClient;
+          client = new clientClass(${safeSerialize(subscriptionEndpoint)}, {
+            reconnect: true
+          });
+          return window.GraphiQL.createFetcher({url, legacyClient: client});
+        }
+      }else{
         return graphQLFetcher;
+      }
     }
     // When the query and variables string is edited, update the URL bar so
     // that it can be easily shared.
@@ -200,9 +239,3 @@ add "&raw" to the end of the URL within a browser.
 </body>
 </html>`;
 }
-
-// export default gqli = { gqliData, gqliOptions };
-
-// // export function renderGraphiQL(gqliData, gqliOptions) {
-// //   return;
-// // }
