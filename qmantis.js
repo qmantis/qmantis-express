@@ -14,7 +14,6 @@ import {
 } from "graphql";
 
 import { parseBody } from "./helper/parseBody.js";
-import { gqliOptions, gqliData } from "./helper/renderGraphiQL.js";
 import { renderGraphiQL } from "./helper/renderGraphiQL.js";
 import { collectMetrics } from "./observability/monitoring.js";
 import config from "./utils.js";
@@ -28,8 +27,8 @@ export function qMantisServer(options) {
     let startLatency = Date.now();
     let params;
     let showGraphiQL = true;
-    let graphiqlOptions = gqliOptions;
-    let pretty = true;
+    let graphiqlOptions;
+    let pretty = false;
     let result;
 
     try {
@@ -43,7 +42,7 @@ export function qMantisServer(options) {
       const rootValue = options.rootValue;
       const fieldResolver = options.fieldResolver;
       const typeResolver = options.typeResolver;
-      const graphiql = true; //true;
+      const graphiql = true;
       const context = request;
 
       pretty = options.pretty ?? false;
@@ -68,6 +67,7 @@ export function qMantisServer(options) {
 
       // Get GraphQL params from the request and POST body data.
       const { query, variables, operationName } = params;
+      config.operationName = operationName;
       showGraphiQL = canDisplayGraphiQL(request, params) && graphiql !== false;
       if (typeof graphiql !== "boolean") {
         graphiqlOptions = graphiql;
@@ -206,8 +206,7 @@ export function qMantisServer(options) {
 }
 
 function respondWithGraphiQL(response, options, params, result) {
-  let data = gqliData;
-  data = {
+  const data = {
     query: params?.query,
     variables: params?.variables,
     operationName: params?.operationName,
@@ -241,8 +240,6 @@ export async function getGraphQLParams(request) {
   if (typeof operationName !== "string") {
     operationName = null;
   }
-
-  config.operationName = operationName;
 
   const raw = urlData.get("raw") != null || bodyData.raw !== undefined;
 

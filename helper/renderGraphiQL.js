@@ -3,24 +3,27 @@ import fs from "fs";
 import pkg from "graphql";
 const { FormattedExecutionResult } = pkg;
 
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+
 // require("@babel/core").transform("code", {
 //   presets: ["@babel/preset-env"],
 // }); // new codee
 
-export const gqliData = {
-  query: "",
-  variables: "" | null,
-  operationName: "" | null,
-  result: FormattedExecutionResult,
-};
+// export const gqliData = {
+//   query: "",
+//   variables: "" | null,
+//   operationName: "" | null,
+//   result: FormattedExecutionResult,
+// };
 
-export const gqliOptions = {
-  defaultQuery: "",
-  headerEditorEnabled: true,
-  shouldPersistHeaders: true,
-  subscriptionEndpoint: "",
-  websocketClient: "",
-};
+// export const gqliOptions = {
+//   defaultQuery: "",
+//   headerEditorEnabled: true,
+//   shouldPersistHeaders: true,
+//   subscriptionEndpoint: "",
+//   websocketClient: "",
+// };
 
 // Ensures string values are safe to be used within a <script> tag.
 export function safeSerialize(data) {
@@ -29,49 +32,11 @@ export function safeSerialize(data) {
     : "undefined";
 }
 
-// Implemented as Babel transformation, see ../resources/load-statically-from-npm.js
-export function loadFileStaticallyFromNPM(npmPath) {
-  return function visit(node) {
-    if (t.isCallExpression(node)) {
-      if (
-        t.isIdentifier(node.expression) &&
-        node.expression.text === "loadFileStaticallyFromNPM"
-      ) {
-        const npmPath = node.arguments[0].text;
-        const filePath = require.resolve(npmPath);
-        const content = fs.readFileSync(filePath, "utf-8");
-        return t.StringLiteral(content);
-      }
-    }
-    return t.visitEachChild(node, visit, context);
-  };
+function loadFileStaticallyFromNPM(npmPath) {
+  const filePath = require.resolve(npmPath);
+  const content = fs.readFileSync(filePath, "utf-8");
+  return content.toString();
 }
-
-/**
- * Transforms:
- *
- *  loadFileStaticallyFromNPM(<npm path>)
- *
- * to:
- *
- *  "<file content>"
- */
-// module.exports.transformLoadFileStaticallyFromNPM = function (context) {
-//   return function visit(node) {
-//     if (ts.isCallExpression(node)) {
-//       if (
-//         ts.isIdentifier(node.expression) &&
-//         node.expression.text === 'loadFileStaticallyFromNPM'
-//       ) {
-//         const npmPath = node.arguments[0].text;
-//         const filePath = require.resolve(npmPath);
-//         const content = fs.readFileSync(filePath, 'utf-8');
-//         return ts.createStringLiteral(content);
-//       }
-//     }
-//     return ts.visitEachChild(node, visit, context);
-//   };
-// };
 
 /**
  * When express-graphql receives a request which does not Accept JSON, but does
@@ -92,48 +57,11 @@ export function renderGraphiQL(gqliData, gqliOptions) {
   const defaultQuery = gqliOptions?.defaultQuery;
   const headerEditorEnabled = gqliOptions?.headerEditorEnabled;
   const shouldPersistHeaders = gqliOptions?.shouldPersistHeaders;
-  const subscriptionEndpoint = gqliOptions?.subscriptionEndpoint;
-  const websocketClient = gqliOptions?.websocketClient ?? "v0";
-
-  let subscriptionScripts = "";
-  if (subscriptionEndpoint != null) {
-    if (websocketClient === "v1") {
-      subscriptionScripts = `
-      <script>
-        ${loadFileStaticallyFromNPM("graphql-ws/umd/graphql-ws.js")}
-      </script>
-      <script>
-      ${loadFileStaticallyFromNPM(
-        "subscriptions-transport-ws/browser/client.js"
-      )}
-      </script>
-      `;
-    } else {
-      subscriptionScripts = `
-      <script>
-        ${loadFileStaticallyFromNPM(
-          "subscriptions-transport-ws/browser/client.js"
-        )}
-      </script>
-      <script>
-        ${loadFileStaticallyFromNPM(
-          "subscriptions-transport-ws/browser/client.js"
-        )}
-      </script>
-      <script>
-        ${loadFileStaticallyFromNPM(
-          "graphiql-subscriptions-fetcher/browser/client.js"
-        )}
-      </script>
-      `;
-    }
-  }
 
   return `<!--
 The request to this GraphQL server provided the header "Accept: text/html"
 and as a result has been presented GraphiQL - an in-browser IDE for
 exploring GraphQL.
-
 If you wish to receive JSON, provide the header "Accept: application/json" or
 add "&raw" to the end of the URL within a browser.
 -->
@@ -178,7 +106,7 @@ add "&raw" to the end of the URL within a browser.
     // graphiql/graphiql.min.js
     ${loadFileStaticallyFromNPM("graphiql/graphiql.min.js")}
   </script>
-  ${subscriptionScripts}
+
 </head>
 <body>
   <div id="graphiql">Loading...</div>
@@ -192,7 +120,6 @@ add "&raw" to the end of the URL within a browser.
           decodeURIComponent(entry.slice(eq + 1));
       }
     });
-
     // Produce a Location query string from a parameter object.
     function locationQuery(params) {
       return '?' + Object.keys(params).filter(function (key) {
@@ -202,14 +129,12 @@ add "&raw" to the end of the URL within a browser.
           encodeURIComponent(params[key]);
       }).join('&');
     }
-
     // Derive a fetch URL from the current URL, sans the GraphQL parameters.
     var graphqlParamNames = {
       query: true,
       variables: true,
       operationName: true
     };
-
     var otherParams = {};
     for (var k in parameters) {
       if (parameters.hasOwnProperty(k) && graphqlParamNames[k] !== true) {
@@ -217,7 +142,6 @@ add "&raw" to the end of the URL within a browser.
       }
     }
     var fetchURL = locationQuery(otherParams);
-
     // Defines a GraphQL fetcher using the fetch API.
     function graphQLFetcher(graphQLParams, opts) {
       return fetch(fetchURL, {
@@ -235,53 +159,30 @@ add "&raw" to the end of the URL within a browser.
         return response.json();
       });
     }
-
     function makeFetcher() {
-      if('${typeof subscriptionEndpoint}' == 'string') {
-        let client = null;
-        let url = window.location.href;
-        if('${typeof websocketClient}' == 'string' && '${websocketClient}' === 'v1') {
-          client = window.graphqlWs.createClient({url: ${safeSerialize(
-            subscriptionEndpoint
-          )} });
-          return window.GraphiQL.createFetcher({url, wsClient: client});
-        } else {
-          let clientClass = window.SubscriptionsTransportWs.SubscriptionClient;
-          client = new clientClass(${safeSerialize(subscriptionEndpoint)}, {
-            reconnect: true
-          });
-          return window.GraphiQL.createFetcher({url, legacyClient: client});
-        }
-      }else{
         return graphQLFetcher;
-      }
     }
-
     // When the query and variables string is edited, update the URL bar so
     // that it can be easily shared.
     function onEditQuery(newQuery) {
       parameters.query = newQuery;
       updateURL();
     }
-
     function onEditVariables(newVariables) {
       parameters.variables = newVariables;
       updateURL();
     }
-
     function onEditOperationName(newOperationName) {
       parameters.operationName = newOperationName;
       updateURL();
     }
-
     function updateURL() {
       history.replaceState(null, null, locationQuery(parameters));
     }
-
     // Render <GraphiQL /> into the body.
     ReactDOM.render(
       React.createElement(GraphiQL, {
-        fetcher:  makeFetcher(),
+        fetcher: makeFetcher(),
         onEditQuery: onEditQuery,
         onEditVariables: onEditVariables,
         onEditOperationName: onEditOperationName,
