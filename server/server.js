@@ -92,6 +92,8 @@ export function qMantisServer(options) {
       // a result, otherwise return a 400: Bad Request.
       if (query == null) {
         if (showGraphiQL) {
+          let formattedResult = {}
+          collectMetrics(startLatency, formattedResult)
           console.log("sending response", response.statusCode)
           return respondWithGraphiQL(response, graphiqlOptions);
         }
@@ -140,6 +142,9 @@ export function qMantisServer(options) {
           // provide it to GraphiQL so that the requester may perform it
           // themselves if desired.
           if (showGraphiQL) {
+            // get request from graphiQL, no formatted result
+            let formattedResult = {}
+            collectMetrics(startLatency, formattedResult)
             console.log("sending response", response.statusCode)
             return respondWithGraphiQL(response, graphiqlOptions, params);
           }
@@ -234,14 +239,10 @@ export function qMantisServer(options) {
       errors: result.errors?.map(formatErrorFn),
     };
 
-    /* if response.statusCode !== 200 || result.errors {
-      countErrors()
-    }
-
-    */
 
     // If allowed to show GraphiQL, present it instead of JSON.
     if (showGraphiQL) {
+      collectMetrics(startLatency, formattedResult)
       console.log("sending response", response.statusCode)
       return respondWithGraphiQL(
         response,
@@ -255,13 +256,11 @@ export function qMantisServer(options) {
     // response.json method (express), use that directly.
     // Otherwise use the simplified sendResponse method.
     if (!pretty && typeof response.json === 'function') {
-      console.log("sending response", response.statusCode)
       collectMetrics(startLatency, formattedResult)
       response.json(formattedResult);
     } else {
       const payload = JSON.stringify(formattedResult, null, pretty ? 2 : 0);
       collectMetrics(startLatency, formattedResult)
-      console.log("sending response", response.statusCode)
       sendResponse(response, 'application/json', payload);
     }
 

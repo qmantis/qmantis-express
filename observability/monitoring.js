@@ -23,7 +23,7 @@ const requestLatency = meter.createHistogram("request_latency", {
   boundaries: [10, 50, 100, 150, 200, 250, 300, 400, 500],
 });
 
-const countRequests = (req, res, next) => {
+const countRequests = () => {
   requestsCounter.add(1);
 };
 
@@ -33,17 +33,14 @@ const countErrors = () => {
 
 const collectMetrics = (startLatency, response) => {
   countRequests();
-  console.log("counting requests")
 
   if (response.errors) {
-    console.log("error added");
     config.error = true;
     countErrors();
   } else {
     config.error = false;
   }
-  console.log("latency", Date.now() - startLatency)
   requestLatency.record(Date.now() - startLatency)
 }
 
-export { countRequests, countErrors, requestLatency, collectMetrics };
+export { collectMetrics };
