@@ -272,7 +272,6 @@ add "&raw" to the end of the URL within a browser.
 
 */
 
-
 export function renderGraphiQL(data, options) {
-  return
+  return;
 }
