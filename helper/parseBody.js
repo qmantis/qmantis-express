@@ -1,101 +1,73 @@
-import zlib from 'zlib';
-import querystring from 'querystring';
+import zlib from "zlib";
+import querystring from "querystring";
 
-import getStream, { MaxBufferError } from 'get-stream';
-import httpError from 'http-errors';
-import contentType from 'content-type';
+import getStream, { MaxBufferError } from "get-stream";
+import httpError from "http-errors";
+import contentType from "content-type";
 
-
-
-/**
- * Provided a "Request" provided by express or connect (typically a node style
- * HTTPClientRequest), Promise the body data contained.
- */
 export async function parseBody(req) {
   const { body } = req;
 
-  // If express has already parsed a body as a keyed object, use it.
-  if (typeof body === 'object' && !(body instanceof Buffer)) {
+  if (typeof body === "object" && !(body instanceof Buffer)) {
     return body;
   }
 
-  // Skip requests without content types.
-  if (req.headers['content-type'] === undefined) {
+  if (req.headers["content-type"] === undefined) {
     return {};
   }
 
   const typeInfo = contentType.parse(req);
 
-  // If express has already parsed a body as a string, and the content-type
-  // was application/graphql, parse the string body.
-  if (typeof body === 'string' && typeInfo.type === 'application/graphql') {
+  if (typeof body === "string" && typeInfo.type === "application/graphql") {
     return { query: body };
   }
 
-  // Already parsed body we didn't recognise? Parse nothing.
   if (body != null) {
     return {};
   }
 
   const rawBody = await readBody(req, typeInfo);
-  // Use the correct body parser based on Content-Type header.
+
   switch (typeInfo.type) {
-    case 'application/graphql':
+    case "application/graphql":
       return { query: rawBody };
-    case 'application/json':
+    case "application/json":
       if (jsonObjRegex.test(rawBody)) {
         try {
           return JSON.parse(rawBody);
-        } catch {
-          // Do nothing
-        }
+        } catch {}
       }
-      throw httpError(400, 'POST body sent invalid JSON.');
-    case 'application/x-www-form-urlencoded':
+      throw httpError(400, "POST body sent invalid JSON.");
+    case "application/x-www-form-urlencoded":
       return querystring.parse(rawBody);
   }
 
-  // If no Content-Type header matches, parse nothing.
   return {};
 }
 
-/**
- * RegExp to match an Object-opening brace "{" as the first non-space
- * in a string. Allowed whitespace is defined in RFC 7159:
- *
- *     ' '   Space
- *     '\t'  Horizontal tab
- *     '\n'  Line feed or New line
- *     '\r'  Carriage return
- */
 const jsonObjRegex = /^[ \t\n\r]*\{/;
 
-// Read and parse a request body.
 async function readBody(req, typeInfo) {
-  const charset = typeInfo.parameters.charset?.toLowerCase() ?? 'utf-8';
+  const charset = typeInfo.parameters.charset?.toLowerCase() ?? "utf-8";
 
-  // Assert charset encoding per JSON RFC 7159 sec 8.1
-  if (charset !== 'utf8' && charset !== 'utf-8' && charset !== 'utf16le') {
+  if (charset !== "utf8" && charset !== "utf-8" && charset !== "utf16le") {
     throw httpError(415, `Unsupported charset "${charset.toUpperCase()}".`);
   }
 
-  // Get content-encoding (e.g. gzip)
-  const contentEncoding = req.headers['content-encoding'];
+  const contentEncoding = req.headers["content-encoding"];
   const encoding =
-    typeof contentEncoding === 'string'
+    typeof contentEncoding === "string"
       ? contentEncoding.toLowerCase()
-      : 'identity';
+      : "identity";
   const maxBuffer = 100 * 1024; // 100kb
   const stream = decompressed(req, encoding);
 
-  // Read body from stream.
   try {
     const buffer = await getStream.buffer(stream, { maxBuffer });
     return buffer.toString(charset);
   } catch (rawError) {
-    /* istanbul ignore else: Thrown by underlying library. */
     if (rawError instanceof MaxBufferError) {
-      throw httpError(413, 'Invalid body: request entity too large.');
+      throw httpError(413, "Invalid body: request entity too large.");
     } else {
       const message =
         rawError instanceof Error ? rawError.message : String(rawError);
@@ -104,14 +76,13 @@ async function readBody(req, typeInfo) {
   }
 }
 
-// Return a decompressed stream, given an encoding.
 function decompressed(req, encoding) {
   switch (encoding) {
-    case 'identity':
+    case "identity":
       return req;
-    case 'deflate':
+    case "deflate":
       return req.pipe(zlib.createInflate());
-    case 'gzip':
+    case "gzip":
       return req.pipe(zlib.createGunzip());
   }
   throw httpError(415, `Unsupported content-encoding "${encoding}".`);

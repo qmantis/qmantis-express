@@ -37,10 +37,9 @@ const collectMetrics = (startLatency, response) => {
   if (response.errors) {
     config.error = true;
     countErrors();
-  } else {
-    config.error = false;
-  }
-  requestLatency.record(Date.now() - startLatency)
-}
+  } 
+  
+  requestLatency.record(Date.now() - startLatency);
+};
 
 export { collectMetrics };
