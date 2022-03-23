@@ -1,20 +1,51 @@
-/*
+import fs from "fs";
 
+import pkg from "graphql";
+const { FormattedExecutionResult } = pkg;
+
+// require("@babel/core").transform("code", {
+//   presets: ["@babel/preset-env"],
+// }); // new codee
+
+export const gqliData = {
+  query: "",
+  variables: "" | null,
+  operationName: "" | null,
+  result: FormattedExecutionResult,
+};
+
+export const gqliOptions = {
+  defaultQuery: "",
+  headerEditorEnabled: true,
+  shouldPersistHeaders: true,
+  subscriptionEndpoint: "",
+  websocketClient: "",
+};
 
 // Ensures string values are safe to be used within a <script> tag.
-function safeSerialize(data) {
+export function safeSerialize(data) {
   return data != null
-    ? JSON.stringify(data).replace(/\//g, '\\/')
-    : 'undefined';
+    ? JSON.stringify(data).replace(/\//g, "\\/")
+    : "undefined";
 }
 
 // Implemented as Babel transformation, see ../resources/load-statically-from-npm.js
-function loadFileStaticallyFromNPM(npmPath) {}
-
-
-const fs = require('fs');
-
-const ts = require('typescript');
+export function loadFileStaticallyFromNPM(npmPath) {
+  return function visit(node) {
+    if (t.isCallExpression(node)) {
+      if (
+        t.isIdentifier(node.expression) &&
+        node.expression.text === "loadFileStaticallyFromNPM"
+      ) {
+        const npmPath = node.arguments[0].text;
+        const filePath = require.resolve(npmPath);
+        const content = fs.readFileSync(filePath, "utf-8");
+        return t.StringLiteral(content);
+      }
+    }
+    return t.visitEachChild(node, visit, context);
+  };
+}
 
 /**
  * Transforms:
@@ -24,26 +55,23 @@ const ts = require('typescript');
  * to:
  *
  *  "<file content>"
- 
-module.exports.transformLoadFileStaticallyFromNPM = function (context) {
-  return function visit(node) {
-    if (ts.isCallExpression(node)) {
-      if (
-        ts.isIdentifier(node.expression) &&
-        node.expression.text === 'loadFileStaticallyFromNPM'
-      ) {
-        const npmPath = node.arguments[0].text;
-        const filePath = require.resolve(npmPath);
-        const content = fs.readFileSync(filePath, 'utf-8');
-        return ts.createStringLiteral(content);
-      }
-    }
-    return ts.visitEachChild(node, visit, context);
-  };
-};
-
-
-*/
+ */
+// module.exports.transformLoadFileStaticallyFromNPM = function (context) {
+//   return function visit(node) {
+//     if (ts.isCallExpression(node)) {
+//       if (
+//         ts.isIdentifier(node.expression) &&
+//         node.expression.text === 'loadFileStaticallyFromNPM'
+//       ) {
+//         const npmPath = node.arguments[0].text;
+//         const filePath = require.resolve(npmPath);
+//         const content = fs.readFileSync(filePath, 'utf-8');
+//         return ts.createStringLiteral(content);
+//       }
+//     }
+//     return ts.visitEachChild(node, visit, context);
+//   };
+// };
 
 /**
  * When express-graphql receives a request which does not Accept JSON, but does
@@ -51,30 +79,32 @@ module.exports.transformLoadFileStaticallyFromNPM = function (context) {
  *
  * When shown, it will be pre-populated with the result of having executed the
  * requested query.
- 
-export function renderGraphiQL(data, options) {
-  const queryString = data.query;
+ */
+export function renderGraphiQL(gqliData, gqliOptions) {
+  const queryString = gqliData.query;
   const variablesString =
-    data.variables != null ? JSON.stringify(data.variables, null, 2) : null;
+    gqliData.variables != null
+      ? JSON.stringify(gqliData.variables, null, 2)
+      : null;
   const resultString =
-    data.result != null ? JSON.stringify(data.result, null, 2) : null;
-  const operationName = data.operationName;
-  const defaultQuery = options?.defaultQuery;
-  const headerEditorEnabled = options?.headerEditorEnabled;
-  const shouldPersistHeaders = options?.shouldPersistHeaders;
-  const subscriptionEndpoint = options?.subscriptionEndpoint;
-  const websocketClient = options?.websocketClient ?? 'v0';
+    gqliData.result != null ? JSON.stringify(gqliData.result, null, 2) : null;
+  const operationName = gqliData.operationName;
+  const defaultQuery = gqliOptions?.defaultQuery;
+  const headerEditorEnabled = gqliOptions?.headerEditorEnabled;
+  const shouldPersistHeaders = gqliOptions?.shouldPersistHeaders;
+  const subscriptionEndpoint = gqliOptions?.subscriptionEndpoint;
+  const websocketClient = gqliOptions?.websocketClient ?? "v0";
 
-  let subscriptionScripts = '';
+  let subscriptionScripts = "";
   if (subscriptionEndpoint != null) {
-    if (websocketClient === 'v1') {
+    if (websocketClient === "v1") {
       subscriptionScripts = `
       <script>
-        ${loadFileStaticallyFromNPM('graphql-ws/umd/graphql-ws.js')}
+        ${loadFileStaticallyFromNPM("graphql-ws/umd/graphql-ws.js")}
       </script>
       <script>
       ${loadFileStaticallyFromNPM(
-        'subscriptions-transport-ws/browser/client.js',
+        "subscriptions-transport-ws/browser/client.js"
       )}
       </script>
       `;
@@ -82,17 +112,17 @@ export function renderGraphiQL(data, options) {
       subscriptionScripts = `
       <script>
         ${loadFileStaticallyFromNPM(
-          'subscriptions-transport-ws/browser/client.js',
+          "subscriptions-transport-ws/browser/client.js"
         )}
       </script>
       <script>
         ${loadFileStaticallyFromNPM(
-          'subscriptions-transport-ws/browser/client.js',
+          "subscriptions-transport-ws/browser/client.js"
         )}
       </script>
       <script>
         ${loadFileStaticallyFromNPM(
-          'graphiql-subscriptions-fetcher/browser/client.js',
+          "graphiql-subscriptions-fetcher/browser/client.js"
         )}
       </script>
       `;
@@ -125,28 +155,28 @@ add "&raw" to the end of the URL within a browser.
     }
   </style>
   <style>
-    /* graphiql/graphiql.css 
-    ${loadFileStaticallyFromNPM('graphiql/graphiql.css')}
+    /* graphiql/graphiql.css
+    ${loadFileStaticallyFromNPM("graphiql/graphiql.css")}
   </style>
   <script>
     // promise-polyfill/dist/polyfill.min.js
-    ${loadFileStaticallyFromNPM('promise-polyfill/dist/polyfill.min.js')}
+    ${loadFileStaticallyFromNPM("promise-polyfill/dist/polyfill.min.js")}
   </script>
   <script>
     // unfetch/dist/unfetch.umd.js
-    ${loadFileStaticallyFromNPM('unfetch/dist/unfetch.umd.js')}
+    ${loadFileStaticallyFromNPM("unfetch/dist/unfetch.umd.js")}
   </script>
   <script>
     // react/umd/react.production.min.js
-    ${loadFileStaticallyFromNPM('react/umd/react.production.min.js')}
+    ${loadFileStaticallyFromNPM("react/umd/react.production.min.js")}
   </script>
   <script>
     // react-dom/umd/react-dom.production.min.js
-    ${loadFileStaticallyFromNPM('react-dom/umd/react-dom.production.min.js')}
+    ${loadFileStaticallyFromNPM("react-dom/umd/react-dom.production.min.js")}
   </script>
   <script>
     // graphiql/graphiql.min.js
-    ${loadFileStaticallyFromNPM('graphiql/graphiql.min.js')}
+    ${loadFileStaticallyFromNPM("graphiql/graphiql.min.js")}
   </script>
   ${subscriptionScripts}
 </head>
@@ -212,7 +242,7 @@ add "&raw" to the end of the URL within a browser.
         let url = window.location.href;
         if('${typeof websocketClient}' == 'string' && '${websocketClient}' === 'v1') {
           client = window.graphqlWs.createClient({url: ${safeSerialize(
-            subscriptionEndpoint,
+            subscriptionEndpoint
           )} });
           return window.GraphiQL.createFetcher({url, wsClient: client});
         } else {
@@ -270,9 +300,8 @@ add "&raw" to the end of the URL within a browser.
 </html>`;
 }
 
-*/
+// export default gqli = { gqliData, gqliOptions };
 
-
-export function renderGraphiQL(data, options) {
-  return
-}
+// // export function renderGraphiQL(gqliData, gqliOptions) {
+// //   return;
+// // }
