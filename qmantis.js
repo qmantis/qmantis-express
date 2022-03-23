@@ -102,9 +102,10 @@ export function qMantisServer(options) {
         });
       }
 
+      const operationAST = getOperationAST(documentAST, operationName);
+      config.operationType = operationAST.operation;
+
       if (request.method === 'GET') {
-        const operationAST = getOperationAST(documentAST, operationName);
-        config.operationType = operationAST.operation;
         if (operationAST && operationAST.operation !== 'query') {
           if (showGraphiQL) {
             let formattedResult = {}
