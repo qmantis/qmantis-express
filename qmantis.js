@@ -26,7 +26,7 @@ export function qMantisServer(options) {
   return async function qMantislMiddleware(request, response) {
     let startLatency = Date.now();
     let params;
-    let showGraphiQL = false;
+    let showGraphiQL = true;
     let graphiqlOptions;
     let pretty = false;
     let result;
@@ -42,7 +42,7 @@ export function qMantisServer(options) {
       const rootValue = options.rootValue;
       const fieldResolver = options.fieldResolver;
       const typeResolver = options.typeResolver;
-      const graphiql = false; //true;
+      const graphiql = true;
       const context = request;
 
       pretty = options.pretty ?? false;
