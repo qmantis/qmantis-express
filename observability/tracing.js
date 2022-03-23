@@ -22,6 +22,8 @@ registerInstrumentations({
         }
         if (config.operationName) {
           span.setAttribute("operationName", config.operationName);
+        } else if (config.operationType) {
+          span.setAttribute("operationName", config.operationType);
         }
         config.error = false;
         config.operationName = null;
