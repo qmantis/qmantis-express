@@ -7,7 +7,7 @@ QMantis is a GraphQL server with autoinstrumentation for GraphQL API observabili
 qmantis-server-express is a npm package. Use the `npm install`command to install it. The `graphql` package is a peer-dependency, so we recommend installing both packages together.
 
 ```bash
-npm install qmantis-server-express graphql
+npm install qmantis graphql
 ```
 
 ## Set Up
@@ -18,10 +18,16 @@ npm install qmantis-server-express graphql
 import  qMantisServer  from 'qmantis';
 ```
 
-2. Set up the server as a route handler for your `/graphql` endpoint and pass in your schema as a value for the `schema` key:
+2. Set up the server as a route handler for your `/graphql` endpoint and pass your schema as a value for the `schema` key:
 
 ```javascript
 app.use("/graphql", qMantisServer({
   schema: GraphQLSchema
-  }));
+  })
+);
 ```
+
+3. Clone the qmantis-compose folder and run the command `docker-compose up` (see details here [LINK_TO_QMANTIS-COMPOSE]).
+
+
+
