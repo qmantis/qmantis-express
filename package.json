@@ -7,6 +7,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/qmantis/qmantis-server-express.git"
+  },
   "keywords": [
     "traces",
     "metrics",
@@ -45,5 +49,6 @@
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "unfetch": "^4.2.0"
-  }
+  },
+  "homepage": "https://github.com/qmantis/qmantis-server-express#readme"
 }
