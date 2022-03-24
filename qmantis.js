@@ -65,7 +65,6 @@ export function qMantisServer(options) {
         );
       }
 
-      // Get GraphQL params from the request and POST body data.
       const { query, variables, operationName } = params;
       config.operationName = operationName;
       showGraphiQL = canDisplayGraphiQL(request, params) && graphiql !== false;
@@ -77,7 +76,6 @@ export function qMantisServer(options) {
         if (showGraphiQL) {
           let formattedResult = {};
           collectMetrics(startLatency, formattedResult);
-          console.log("sending response", response.statusCode);
           return respondWithGraphiQL(response, graphiqlOptions);
         }
         throw httpError(400, "Must provide a query string.");
@@ -185,7 +183,6 @@ export function qMantisServer(options) {
 
     if (showGraphiQL) {
       collectMetrics(startLatency, formattedResult);
-      console.log("sending response", response.statusCode);
       return respondWithGraphiQL(
         response,
         graphiqlOptions,
