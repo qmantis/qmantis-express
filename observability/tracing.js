@@ -9,6 +9,7 @@ import { MongoDBInstrumentation } from "@opentelemetry/instrumentation-mongodb";
 import { PgInstrumentation } from "@opentelemetry/instrumentation-pg";
 import { GraphQLInstrumentation } from "@opentelemetry/instrumentation-graphql";
 import { SemanticResourceAttributes } from "@opentelemetry/semantic-conventions";
+import { countErrors } from "./monitoring.js";
 import config from "../utils.js";
 
 registerInstrumentations({
@@ -19,6 +20,7 @@ registerInstrumentations({
         if (config.error || span.status.code !== 1) {
           span.setAttribute("error", true);
           span.setAttribute("gqlerror", "true");
+          countErrors();
         }
         if (config.operationName) {
           span.setAttribute("operationName", config.operationName);
