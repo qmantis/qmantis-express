@@ -1,9 +1,10 @@
 import "./observability/tracing.js";
-import { registerLatency } from "./observability/monitoring.js";
+import { registerLatency, countRequests } from "./observability/monitoring.js";
 import responseTime  from 'response-time';
 import config from "./utils.js";
 
 const collectData = (req, res, next) => {
+  countRequests();
   if (req.body) {
     if (req.body.query.split(" ")[0] === "mutation") {
       config.operationType = "mutation"
