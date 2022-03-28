@@ -1,6 +1,5 @@
 import { MeterProvider } from "@opentelemetry/sdk-metrics-base";
 import { PrometheusExporter } from "@opentelemetry/exporter-prometheus";
-import config from "../utils.js";
 
 const options = { port: 9464, startServer: true };
 const exporter = new PrometheusExporter(options);
@@ -31,15 +30,8 @@ const countErrors = () => {
   errorsCounter.add(1);
 };
 
-const collectMetrics = (startLatency, response) => {
-  countRequests();
+const registerLatency = (req, res, time) => {
+  requestLatency.record(time)
+}
 
-  if (response.errors) {
-    config.error = true;
-    countErrors();
-  } 
-  
-  requestLatency.record(Date.now() - startLatency);
-};
-
-export { collectMetrics };
+export { countRequests, countErrors, registerLatency };
