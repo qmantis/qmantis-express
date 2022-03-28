@@ -27,12 +27,12 @@ npm install qmantis-express express-graphql
 import express from "express";
 const app = express();
 import {  
-	tracing,
+  tracing,
   qMantis,
   registerLatency,
   responseTime,
   collectData 
-} from "qmantis-express";
+  } from "qmantis-express";
 import { graphqlHTTP } from "express-graphql";
 ```
 
