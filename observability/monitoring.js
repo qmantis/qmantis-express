@@ -31,7 +31,7 @@ const countErrors = () => {
 };
 
 const registerLatency = (req, res, time) => {
-  requestLatency.record(time)
-}
+  requestLatency.record(time);
+};
 
 export { countRequests, countErrors, registerLatency };
