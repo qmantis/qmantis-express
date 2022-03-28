@@ -1,5 +1,5 @@
 {
-  "name": "qmantis",
+  "name": "qmantis-express",
   "version": "1.0.0",
   "description": "GraphQL server and observability for GraphQL APIs",
   "main": "qmantis.js",
